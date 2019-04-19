@@ -16,8 +16,8 @@ const conn = mysql.createConnection({
 
 // Register/input
 app.post('/users', (req, res) => {
-    const { name, age, password, email } = req.body
-    var sql = `INSERT INTO users (name, age,password,email) VALUES ('${name}', ${age},'${password}','${email}');`
+    const { nama, age, password, email } = req.body
+    var sql = `INSERT INTO users (nama, age,password,email) VALUES ('${nama}', ${age},'${password}','${email}');`
     var sql2 = `SELECT * FROM users;`
 
     conn.query(sql, (err, result) => {
@@ -76,10 +76,79 @@ app.delete('/users/:id', (req, res) => {
     conn.query(sql, req.params.id, (err, result) => {
         if (err) { throw err }
 
-        res.status(200).send("deleted successfull")
+        res.status(200).send("deleted user successfull")
 
     })
 })
+
+
+//input task
+app.post('/task/', (req, res) => {
+
+    const { keterangan, userid } = req.body
+
+    var sql = `insert into task (keterangan,userid) values ('${keterangan}',${userid});`
+
+
+
+    var sql2 = `select * from task;`
+
+
+
+    conn.query(sql, (err, result) => {
+        if (err) { throw err }
+
+        conn.query(sql2, (err, result) => {
+            if (err) { throw err }
+
+            res.send(result)
+
+        })
+    })
+})
+
+
+//get own task
+app.get('/task/:userid', (req, res) => {
+
+
+    var sql = `select keterangan,nama,age,userid
+    from task join users 
+    on userid=users.id
+    where userid=?;`
+
+    conn.query(sql, [req.params.userid], (err, result) => {
+        if (err) { throw err }
+
+        res.send(result)
+    })
+
+})
+
+//delete task
+app.delete('/task/:id', (req, res) => {
+
+    var sql = `delete from task where id = ?`
+
+    conn.query(sql, req.params.id, (err, result) => {
+        if (err) { throw err }
+
+        res.status(200).send("delete task successfull")
+    })
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
