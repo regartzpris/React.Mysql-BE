@@ -73,7 +73,7 @@ router.get('/users/:username', (req, res) => {
 })
 
 
-//path avatar
+// //path avatar
 router.get('/getavatar/:pic', (req, res) => {
     res.sendFile(`${uploadDir}/${req.params.pic}`)
 })
@@ -81,69 +81,149 @@ router.get('/getavatar/:pic', (req, res) => {
 
 
 //delete avatar in sql and folder upload
-router.delete('/upstore/:username', (req, res) => {
+// router.delete('/upstore/:username', (req, res) => {
 
 
-    const sql1 = `select * from users where username=?;`
-    const sql = `UPDATE users SET avatar = null where username=?;`
+//     const sql1 = `select * from users where username=?;`
+//     const sql = `UPDATE users SET avatar = null where username=?;`
 
 
 
-    conn.query(sql1, req.params.username, (err, result) => {
-        if (err) {
-            res.send(err)
-        }
-        // console.log(result);
-        fs.unlinkSync(`${uploadDir}/${result[0].avatar}`)
+//     conn.query(sql1, req.params.username, (err, result) => {
+//         if (err) {
+//             res.send(err)
+//         }
+//         // console.log(result);
+//         fs.unlinkSync(`${uploadDir}/${result[0].avatar}`)
 
-        conn.query(sql, req.params.username, (err, result) => {
-            if (err) return res.send(err)
+//         conn.query(sql, req.params.username, (err, result) => {
+//             if (err) return res.send(err)
 
-            res.status(200).send('avatar successful deleted')
+//             res.status(200).send('avatar successful deleted')
+//         })
+
+//     })
+
+
+// })
+
+
+// login
+router.post('/users/login', (req, res) => { // LOGIN USER
+    const { username, password } = req.body
+
+    const sql = `SELECT * FROM users WHERE username = '${username}'`
+
+    conn.query(sql, async (err, result) => {
+        if (err) return res.send(err.message) // Error pada query SQL
+
+        
+        const user = result[0] // Result berupa array of object
+
+        if (!user) return res.send("User not found") // User tidak ditemukan
+
+        if (!user.verified) return res.send("Please, verify your email") // Belum verifikasi email
+
+        const hash = await bcrypt.compare(password, user.password) // true / false
+
+        if (!hash) return res.send("Wrong password") // Password salah
+
+        res.send(user) // Kirim object user
+    })
+})
+
+
+//read profile
+router.get('/users/username', (req, res) => { // READ PROFILE
+    const sql = `SELECT * FROM users WHERE username = ?`
+    const data = req.query.uname
+
+    conn.query(sql, data, (err, result) => {
+        if (err) return res.send(err.message) // Error pada query SQL
+
+        const user = result[0] // Result berupa array of object
+
+        if (!user) return res.send("User not found") // User tidak ditemukan
+
+        res.send({
+            user,
+            photo: `http://localhost:2010/upstore/${user.avatar}`
         })
 
+    })
+
+})
+
+
+//get link image
+router.get('/upstore/:imgName', (req, res) => { // ACCESS IMAGE
+    const options = {
+        root: uploadDir
+    }
+
+    var fileName = req.params.imgName
+
+    res.sendFile(fileName, options, (err) => {
+        if (err) return console.log(err);
+
+        console.log('Sent: ', fileName);
+
+    })
+})
+
+
+//edit/patch profile
+router.patch('/users/:userid', (req, res) => { // UPDATE USER
+    const sql = `UPDATE users SET ? WHERE id = ?`
+    const data = [req.body, req.params.userid]
+
+    conn.query(sql, data, (err, result) => {
+        if (err) return res.send(err.mess)
+
+        res.send(result)
+    })
+})
+
+
+//delete avatar
+router.delete('/upstore/delete', (req, res) => { // DELETE IMAGE ON FOLDER
+    const sql = `SELECT avatar FROM users WHERE username = '${req.body.username}'` // Get avatar column from user
+    const sql2 = `UPDATE users SET avatar = null WHERE username = '${req.body.username}'` // Set null on avatar column
+    const sql3 = `SELECT * FROM users WHERE username = '${req.body.username}'` // Get updated user
+    conn.query(sql, (err, result) => {
+        if (err) return res.send(err)
+
+        const avatar = result[0].avatar // Get avatar column
+
+        const imgPath = uploadDir + avatar // File location
+
+        fs.unlink(imgPath, err => { // Delete file avatar
+            if (err) return res.send(err)
+
+            conn.query(sql2, (err, result) => {
+                if (err) return res.send(err)
+
+                conn.query(sql3, (err, result) => {
+                    if (err) return res.send(err)
+
+                    res.send(result)
+                })
+            })
+
+        })
     })
 
 
 })
 
-//edit profile
-
-// router.patch('/users/:username', (req, res) => {
-
-//     Object.keys(req.body).forEach(key => {
-//         if (!req.body[key]) {
-//             delete req.body[key];
-//         }
-//     });
-//     var data = {
-//         username: req.body.username,
-//         name: req.body.name,
-//         password: req.body.password,
-//         email: req.body.email,
-//         avatar: req.body.avatar
-//     }
-//     const updates = Object.keys(req.body)  // array baru setelah filtering (delete)  
-//     const allowedUpdates = ['name', 'email', 'password', 'username', 'avatar'] // field yang boleh di update
-//     const isValidOperation = updates.every(update => allowedUpdates.includes(update)) // Check field yg di input user
-
-
-//     var editUser = `UPDATE users SET ? WHERE username = ?`;
-//     // var getUser = `SELECT * FROM users WHERE username = ?`;
-
-//     conn.query(editUser, [data, req.params.username], (err, result) => {
-//         if (err) {
-//             return res.send(err);
-//         }
-
-//         res.send(result)
-//     });
-// });
 
 
 
 
 
+
+
+//register
 router.post('/users', async (req, res) => { // CREATE USER
     var sql = `INSERT INTO users SET ?;` // Tanda tanya akan digantikan oleh variable data
     var sql2 = `SELECT * FROM users;`
@@ -191,42 +271,6 @@ router.get('/verify', (req, res) => {
 
 
 
-//users login
-router.post('/users/login', (req, res) => {
-
-    const { password, email } = req.body
-
-    var sql = `select * from users ;`
-
-
-    conn.query(sql, (err, result) => {
-        if (err) {
-            throw err
-        } else {
-            for (var i = 0; i < result.length; i++) {
-                if (email === result[i].email && password === result[i].password) {
-                    res.send(result[i])
-
-                } else if (i === result.length - 1) {
-                    // console.log('Login gagal');
-                    res.status(404).send("email dan password salah atau tidak di temukan")
-                }
-            }
-        }
-    })
-})
-
-//delete user
-router.delete('/users/:id', (req, res) => {
-    var sql = `delete from users where id=?;`
-
-    conn.query(sql, req.params.id, (err, result) => {
-        if (err) { throw err }
-
-        res.status(200).send("deleted user successfull")
-
-    })
-})
 
 
 //input task
