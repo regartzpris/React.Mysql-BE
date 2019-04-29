@@ -59,18 +59,18 @@ router.post('/upstore', upstore.single('avatar'), (req, res) => {
 
 
 //get user by username include link avatar
-router.get('/users/:username', (req, res) => {
+// router.get('/users/:username', (req, res) => {
 
-    var sql = `SELECT * FROM users where username=?;`
+//     var sql = `SELECT * FROM users where username=?;`
 
 
-    conn.query(sql, req.params.username, (err, result) => {
-        if (err) {
-            throw err
-        }
-        res.send({ user: result, photo: `http://localhost:2010/getavatar/${result[0].avatar}` })
-    })
-})
+//     conn.query(sql, req.params.username, (err, result) => {
+//         if (err) {
+//             throw err
+//         }
+//         res.send({ user: result, photo: `http://localhost:2010/getavatar/${result[0].avatar}` })
+//     })
+// })
 
 
 // //path avatar
@@ -117,7 +117,7 @@ router.post('/users/login', (req, res) => { // LOGIN USER
     conn.query(sql, async (err, result) => {
         if (err) return res.send(err.message) // Error pada query SQL
 
-        
+
         const user = result[0] // Result berupa array of object
 
         if (!user) return res.send("User not found") // User tidak ditemukan

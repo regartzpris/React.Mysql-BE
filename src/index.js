@@ -5,7 +5,16 @@ const taskRouter = require('./routers/taskRouter')
 
 
 const app = express()
-const port = 2010
+const port = process.env.PORT
+
+
+//untuk heroku
+app.get('/', (req, res) => {
+    res.send(`<h1> API running on heroku port ${port}</h1>`)
+
+})
+
+
 
 app.use(express.json())
 app.use(userRouter)
