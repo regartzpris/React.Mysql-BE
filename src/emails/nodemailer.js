@@ -5,7 +5,7 @@ const pdf = require('html-pdf')
 const fs = require('fs')
 
 
-const parentPath = path.join(_dirname, '../..')
+const parentPath = path.join(__dirname, '../..')
 const fileDir = path.join(parentPath, '/src/uploads') // tempat file,photo,html
 
 const transporter = nodemailer.createTransport({
@@ -74,11 +74,11 @@ const createPdf = (username, name, email, fnSendEmail) => {
 const sendVerify = (username, name, email) => {
     const transEmail = () => {
         const mail = {
-            from: 'Rochafi Alvin <rochafi.dev@gmail.com>',
+            from: 'ritongapriskila@gmail.com>',
             to: email,
             subject: 'Verifikasi Email',
             html: `<p>Hello ${name}, please click the link for verify your email</p>
-            <a href='https://createbackend.herokuapp.com//verify?username=${username}'><h1>Verifikasi Email</h1></a>
+            <a href='https://createbackend.herokuapp.com/verify?username=${username}'><h1>Verifikasi Email</h1></a>
             `,
             attachments: [{
                 filename: `invoice.pdf`,

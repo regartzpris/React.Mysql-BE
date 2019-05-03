@@ -1,7 +1,8 @@
 const router = require('express').Router()
 const bcrypt = require('bcryptjs')
 const isEmail = require('validator/lib/isEmail')
-const { sendVerify } = require('../emails/sendGrid')
+const sendVerify = require('../emails/nodemailer')
+
 const conn = require('../connection/connection')
 
 const multer = require('multer')
@@ -147,7 +148,7 @@ router.get('/users/username', (req, res) => { // READ PROFILE
 
         res.send({
             user,
-            photo: `https://createbackend.herokuapp.com//${user.avatar}`
+            photo: `https://createbackend.herokuapp.com/${user.avatar}`
         })
 
     })
